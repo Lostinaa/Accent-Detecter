@@ -7,4 +7,5 @@ transformers==4.31.0
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.0.1+cpu
 python-dotenv==1.0.0
-gunicorn==21.2.0 
+gunicorn==21.2.0
+ffmpeg-python==0.2.0 
