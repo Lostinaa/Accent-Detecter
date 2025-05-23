@@ -2,7 +2,11 @@ services:
   - type: web
     name: accent-detection
     env: python
-    buildCommand: pip install -r requirements.txt
+    plan: free
+    buildCommand: |
+      apt-get update
+      apt-get install -y ffmpeg
+      pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: PORT
