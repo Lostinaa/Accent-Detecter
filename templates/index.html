@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accent Detection Tool</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold text-center mb-8">Accent Detection Tool</h1>
+
+      <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <div class="mb-6">
+          <label
+            for="videoUrl"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Video URL</label
+          >
+          <input
+            type="text"
+            id="videoUrl"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter video URL (YouTube, Loom, or direct MP4 link)"
+          />
+        </div>
+
+        <button
+          onclick="analyzeAccent()"
+          class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Analyze Accent
+        </button>
+
+        <div id="loading" class="hidden mt-4 text-center">
+          <div
+            class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"
+          ></div>
+          <p class="mt-2 text-gray-600">Analyzing accent...</p>
+        </div>
+
+        <div id="results" class="hidden mt-6">
+          <h2 class="text-xl font-semibold mb-4">Analysis Results</h2>
+
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-medium text-gray-700">
+                Accent Classification
+              </h3>
+              <p id="accent" class="text-gray-600"></p>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium text-gray-700">
+                Confidence Score
+              </h3>
+              <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  id="confidenceBar"
+                  class="bg-blue-500 h-2.5 rounded-full"
+                  style="width: 0%"
+                ></div>
+              </div>
+              <p id="confidence" class="text-gray-600 mt-1"></p>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium text-gray-700">Explanation</h3>
+              <p id="explanation" class="text-gray-600"></p>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium text-gray-700">Features</h3>
+              <ul
+                id="features"
+                class="list-disc list-inside text-gray-600"
+              ></ul>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="error"
+          class="hidden mt-4 p-4 bg-red-100 text-red-700 rounded-md"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      async function analyzeAccent() {
+        const url = document.getElementById("videoUrl").value;
+        if (!url) {
+          showError("Please enter a video URL");
+          return;
+        }
+
+        // Show loading state
+        document.getElementById("loading").classList.remove("hidden");
+        document.getElementById("results").classList.add("hidden");
+        document.getElementById("error").classList.add("hidden");
+
+        try {
+          const response = await fetch("/analyze", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ url }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            displayResults(data);
+          } else {
+            showError(data.error || "An error occurred during analysis");
+          }
+        } catch (error) {
+          showError("Failed to analyze accent. Please try again.");
+        } finally {
+          document.getElementById("loading").classList.add("hidden");
+        }
+      }
+
+      function displayResults(data) {
+        document.getElementById("accent").textContent = data.accent;
+        document.getElementById(
+          "confidence"
+        ).textContent = `${data.confidence}%`;
+        document.getElementById(
+          "confidenceBar"
+        ).style.width = `${data.confidence}%`;
+        document.getElementById("explanation").textContent = data.explanation;
+
+        const featuresList = document.getElementById("features");
+        featuresList.innerHTML = "";
+        data.features.forEach((feature) => {
+          const li = document.createElement("li");
+          li.textContent = feature;
+          featuresList.appendChild(li);
+        });
+
+        document.getElementById("results").classList.remove("hidden");
+      }
+
+      function showError(message) {
+        const errorDiv = document.getElementById("error");
+        errorDiv.textContent = message;
+        errorDiv.classList.remove("hidden");
+      }
+    </script>
+  </body>
+</html>
