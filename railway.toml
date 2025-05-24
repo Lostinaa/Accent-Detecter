@@ -1,13 +1,15 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pip install --no-cache-dir -r requirements.txt"
+buildCommand = "pip install --no-cache-dir -r requirements.txt && pip install --upgrade pip"
 
 [deploy]
-startCommand = "gunicorn app:app --workers 1 --threads 1 --timeout 120 --max-requests 1 --max-requests-jitter 1 --bind 0.0.0.0:$PORT"
+startCommand = "gunicorn app:app --workers 1 --threads 1 --timeout 120 --max-requests 1 --max-requests-jitter 1 --bind 0.0.0.0:$PORT --log-level debug"
 healthcheckPath = "/"
-healthcheckTimeout = 300
+healthcheckTimeout = 600
 
 [env]
 PYTHONUNBUFFERED = "1"
 TRANSFORMERS_CACHE = "/tmp/transformers_cache"
-HF_HOME = "/tmp/hf_home" 
+HF_HOME = "/tmp/hf_home"
+FLASK_ENV = "production"
+FLASK_APP = "app.py" 
