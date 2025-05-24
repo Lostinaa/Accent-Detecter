@@ -202,6 +202,10 @@ def analyze_accent(audio_path):
 def home():
     return render_template('index.html')
 
+@app.route('/health')
+def health():
+    return "OK", 200
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
