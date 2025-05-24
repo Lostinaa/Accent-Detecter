@@ -3,7 +3,7 @@ builder = "nixpacks"
 buildCommand = "pip install --no-cache-dir -r requirements.txt && pip install --upgrade pip"
 
 [deploy]
-startCommand = "gunicorn app:app --workers 1 --threads 1 --timeout 120 --max-requests 1 --max-requests-jitter 1 --bind 0.0.0.0:10000 --log-level debug"
+startCommand = "gunicorn app:app --workers 1 --threads 1 --timeout 120 --max-requests 1 --max-requests-jitter 1 --bind 0.0.0.0:$PORT --log-level debug"
 healthcheckPath = "/health"
 healthcheckTimeout = 600
 
