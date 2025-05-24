@@ -1,0 +1,15 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install --no-cache-dir -r requirements.txt"
+
+[deploy]
+startCommand = "gunicorn app:app --workers 1 --threads 1 --timeout 120 --max-requests 1 --max-requests-jitter 1 --bind 0.0.0.0:$PORT"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 10
+
+[env]
+PYTHONUNBUFFERED = "1"
+TRANSFORMERS_CACHE = "/tmp/transformers_cache"
+HF_HOME = "/tmp/hf_home" 
