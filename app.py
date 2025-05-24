@@ -8,16 +8,28 @@ from transformers import pipeline
 import torch
 from sklearn.preprocessing import StandardScaler
 import json
+import gc
 
 app = Flask(__name__)
 
-# Initialize the accent classification model
-accent_classifier = pipeline(
-    "audio-classification",
-    model="microsoft/wavlm-base",
-    device=0 if torch.cuda.is_available() else -1,
-    top_k=4  # Get top 4 predictions
-)
+# Initialize accent classifier as None - will be loaded on first use
+accent_classifier = None
+
+def get_accent_classifier():
+    global accent_classifier
+    if accent_classifier is None:
+        # Clear any existing CUDA cache
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
+        
+        accent_classifier = pipeline(
+            "audio-classification",
+            model="microsoft/wavlm-base",
+            device=0 if torch.cuda.is_available() else -1,
+            top_k=4
+        )
+    return accent_classifier
 
 # Define accent categories and their features
 ACCENT_CATEGORIES = {
@@ -99,13 +111,22 @@ def analyze_accent(audio_path):
         # Get model predictions
         print("Calling accent_classifier...")
         try:
+            # Get the classifier (will load if not already loaded)
+            classifier = get_accent_classifier()
+            
             # Convert audio to the format expected by the model
             audio_input = {
                 "array": y,
                 "sampling_rate": sr
             }
-            predictions = accent_classifier(audio_input)
+            predictions = classifier(audio_input)
             print(f"Model predictions: {predictions}")
+            
+            # Clear memory after prediction
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            gc.collect()
+            
         except Exception as model_error:
             print(f"Error in model prediction: {str(model_error)}")
             # If the first approach fails, try with a different audio format
@@ -127,8 +148,14 @@ def analyze_accent(audio_path):
                     "sampling_rate": sr
                 }
                 print("Calling accent_classifier (second attempt)...")
-                predictions = accent_classifier(audio_input)
+                predictions = classifier(audio_input)
                 print(f"Alternative model predictions: {predictions}")
+                
+                # Clear memory after prediction
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                gc.collect()
+                
             except Exception as second_error:
                 print(f"Second attempt failed: {str(second_error)}")
                 return {
