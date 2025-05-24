@@ -4,7 +4,7 @@ buildCommand = "pip install --no-cache-dir -r requirements.txt && pip install --
 
 [deploy]
 startCommand = "gunicorn app:app --workers 1 --threads 1 --timeout 120 --max-requests 1 --max-requests-jitter 1 --bind 0.0.0.0:10000 --log-level debug"
-healthcheckPath = "/"
+healthcheckPath = "/analyze"
 healthcheckTimeout = 600
 
 [env]
